@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  products-db:
+    image: postgres:15
+    container_name: products-db
+    environment:
+      POSTGRES_DB: products_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - products_db_data:/var/lib/postgresql/data
+    networks:
+      - products-network
+
+  products-service:
+    build: .
+    container_name: products-service
+    environment:
+      - PORT=3001
+      - DB_HOST=products-db
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_DATABASE=products_db
+      - JWT_SECRET=your-secret-key
+      - MESSAGING_SERVICE_URL=http://messaging-service:3005
+    ports:
+      - "3001:3001"
+    depends_on:
+      - products-db
+    networks:
+      - products-network
+
+volumes:
+  products_db_data:
+
+networks:
+  products-network:
+    driver: bridge
