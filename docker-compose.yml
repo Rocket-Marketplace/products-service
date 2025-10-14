@@ -26,8 +26,7 @@ services:
       - DB_PASSWORD=postgres
       - DB_DATABASE=products_db
       - JWT_SECRET=your-secret-key
-      - RABBITMQ_URL=amqp://admin:admin@rabbitmq-server-ip:5672
-      - RABBITMQ_MANAGEMENT_URL=http://rabbitmq-server-ip:15672
+      - USERS_SERVICE_URL=http://host.docker.internal:3000
     ports:
       - "3001:3001"
     depends_on:

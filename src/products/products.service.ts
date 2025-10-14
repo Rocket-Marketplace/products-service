@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -129,5 +130,68 @@ export class ProductsService {
     limit: number;
   }> {
     return this.findAll({ ...query, sellerId });
+  }
+
+  async updateByOwner(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    ownerId: string,
+  ): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id, isActive: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    if (product.sellerId !== ownerId) {
+      throw new ForbiddenException('You can only update your own products');
+    }
+
+    Object.assign(product, updateProductDto);
+    return await this.productRepository.save(product);
+  }
+
+  async removeByOwner(id: string, ownerId: string): Promise<void> {
+    const product = await this.productRepository.findOne({
+      where: { id, isActive: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    if (product.sellerId !== ownerId) {
+      throw new ForbiddenException('You can only delete your own products');
+    }
+
+    product.isActive = false;
+    await this.productRepository.save(product);
+  }
+
+  async updateStockByOwner(
+    id: string,
+    quantity: number,
+    ownerId: string,
+  ): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id, isActive: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    if (product.sellerId !== ownerId) {
+      throw new ForbiddenException('You can only update stock of your own products');
+    }
+
+    if (product.stock + quantity < 0) {
+      throw new BadRequestException('Insufficient stock');
+    }
+
+    product.stock += quantity;
+    return await this.productRepository.save(product);
   }
 }

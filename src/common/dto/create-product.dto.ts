@@ -50,9 +50,11 @@ export class CreateProductDto {
   @ApiProperty({
     description: 'Seller ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
+    required: false,
   })
+  @IsOptional()
   @IsUUID()
-  sellerId: string;
+  sellerId?: string;
 
   @ApiProperty({
     description: 'Product status',
