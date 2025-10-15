@@ -11,9 +11,8 @@ import {
   HttpStatus,
   Request,
   HttpException,
-  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from '../common/dto/create-product.dto';
 import { UpdateProductDto } from '../common/dto/update-product.dto';
@@ -40,20 +39,18 @@ export class ProductsController {
   }
 
   @Get('my-products')
-  // @UseGuards(SessionGuard)
-  // @ApiBearerAuth()
+  @UseGuards(SessionGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get products of the logged seller' })
   @ApiResponse({ status: 200, description: 'Products retrieved successfully' })
   async findMyProducts(
     @Request() req: { user: any },
     @Query() query: ProductQueryDto,
   ) {
-    // TODO: Implement proper authentication guard
-    // if (req.user.role !== 'seller') {
-    //   throw new HttpException('Only sellers can access this endpoint', HttpStatus.FORBIDDEN);
-    // }
-    // return this.productsService.findBySeller(req.user.id, query);
-    return this.productsService.findAll(query);
+    if (req.user.role !== 'seller') {
+      throw new HttpException('Only sellers can access this endpoint', HttpStatus.FORBIDDEN);
+    }
+    return this.productsService.findBySeller(req.user.id, query);
   }
 
   @Get('seller/:sellerId')
